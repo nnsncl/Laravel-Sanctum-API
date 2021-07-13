@@ -56,4 +56,37 @@ class AuthController extends Controller
             'message' => 'Token destroyed'
         ];
     }
+
+    /**
+     * Login with an exinsting user
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function login(Request $request)
+    {
+        $fields = $request->validate([
+            'email' => 'required|string',
+            'password' => 'required|string'
+        ]);
+
+        // Check email
+        $user = User::where('email', $fields['email'])->first();
+
+        // Check password
+        if (!$user || !Hash::check($fields['password'], $user->password)) {
+            return response([
+                'message' => 'Wrong crendetials'
+            ], 401);
+        };
+
+        $token = $user->createToken('nuniroland')->plainTextToken;
+
+        $response = [
+            'user' => $user,
+            'token' => $token
+        ];
+
+        return response($response, 201);
+    }
 }
